@@ -17,7 +17,7 @@ ui <- fluidPage(
     # Main panel for displaying outputs ----
     mainPanel(
       tabsetPanel(
-        tabPanel("Utterance Quantity", plotOutput("quant"), sliderInput("maxNFig", "Only show top n% of Figures:",
+        tabPanel("Utterance Quantity", plotOutput("quant"), sliderInput("maxNCh", "Only show top n% of characters (min. 2):",
                                                                         min = 0, max = 100,
                                                                         value = 100, step=1),),
         tabPanel("Utterance Distribution", plotOutput("dist")),
@@ -32,6 +32,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   dramas <- loadDrama(avaliableDramas, defaultCollection ="test")
   
+  # get the selected Drama
   thisDrama <- reactive({
     drama <- list("text" = dramas$text[dramas$text$drama == input$dramaID],
                   "meta" = dramas$meta[dramas$meta$drama == input$dramaID],
@@ -42,18 +43,33 @@ server <- function(input, output) {
     class(drama) <- c("QDDrama", "list")
     drama
   }) 
-
+  
+  # create utterance quantity stats
   charStats <- reactive({
     stats <- characterNames(characterStatistics(thisDrama()), thisDrama())
     stats <- stats[order(-stats$tokens),]
-    percentage <- input$maxNFig / 100
-    firstN <- ceiling(length(stats) * percentage)
-    if (firstN <1){firstN <- 1}
-    head(stats, firstN)
+  })
+  
+  topNStats <- reactive({
+    percentage <- input$maxNCh / 100
+    firstN <- ceiling(length(charStats()) * percentage)
+    if (firstN < 2){firstN <- 2}
+    head(charStats(), firstN)
   })
 
-  # plot them as a bar plot
-  output$quant <- renderPlot(barplot(charStats(), main=dramaNames(thisDrama())), width=500)
+  # plot utterance quantity as a bar plot
+  output$quant <- renderPlot(barplot(topNStats(), main=dramaNames(thisDrama())), width=500)
+  
+  #create utterance distribution stats
+  
+  uttStats <- reactive({
+    stats <- utteranceStatistics(thisDrama())
+    stats <- characterNames(stats, thisDrama())
+  })
+  
+  # plot utterance distribution
+  output$dist <- renderPlot(plot(uttStats(), thisDrama(), main=dramaNames(thisDrama())), width=500)
+  
   
 }
 
