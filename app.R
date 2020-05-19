@@ -29,6 +29,7 @@ ui <- fluidPage(
 )
 
 
+
 server <- function(input, output) {
   dramas <- loadDrama(avaliableDramas, defaultCollection ="test")
   
@@ -42,7 +43,7 @@ server <- function(input, output) {
                   "stageDirections" = dramas$stageDirections[dramas$stageDirections$drama == input$dramaID])
     class(drama) <- c("QDDrama", "list")
     drama
-  }) 
+  })
   
   # create utterance quantity stats
   charStats <- reactive({
@@ -71,6 +72,53 @@ server <- function(input, output) {
   output$dist <- renderPlot(plot(uttStats(), thisDrama(), main=dramaNames(thisDrama())), width=500)
   
   
+  # create copresence stats
+  c <- reactive({
+    c <- configuration(thisDrama(), onlyPresence = TRUE, segment="Scene")
+    c <- filterCharacters(c, thisDrama(), n = 7)
+    characterNames(c, thisDrama())
+  })
+  # 
+  # copresence <- reactive({
+  #   # extract a matrix
+  #   mat <- as.matrix(c())
+  #   
+  #   # multiply the matrix with its inverse
+  #   # this creates the copresence matrix
+  #   cop <- mat %*% t(mat) 
+  #   
+  #   # add character names
+  #   rownames(cop) <- c()$character
+  #   colnames(cop) <- c()$character
+  #   
+  #   # since it's a square matrix, we don't need the bottom right triangle
+  #   # and diagonales.
+  #   cop[lower.tri(cop,diag=TRUE)] <- NA
+  #   cop
+  #})
+  
+  # # plot copresence
+  # heat <- reactive({
+  #   par(mar=c(10,10,1,1)) # plot margins
+  #   image(copresence(), 
+  #         col = rgb(256,111,184, alpha=(seq(0,255)),
+  #                   maxColorValue = 256),
+  #         xaxt= "n",  # no x axis
+  #         yaxt= "n",  # no y axis
+  #         frame=TRUE  # print a frame around the heatmap
+  #   )
+  #   
+  #   # include values as labels
+  #   text(y=(rep(1:ncol(copresence()), each=nrow(copresence()))-1)/(nrow(copresence())-1),
+  #        x=(1:nrow(copresence())-1)/(nrow(copresence())-1),
+  #        labels=as.vector(copresence()))
+  # 
+  #   # add the x axis
+  #   axis(1, at = seq(0,1,length.out = length(c$character)), labels = c()$character, las=3)
+  #   # add the y axis
+  #   axis(2, at = seq(0,1,length.out = length(c$character)), labels = c()$character, las=1)
+  # })
+  # output$copresence <- renderCachedPlot(heat(), {5})
 }
 
 shinyApp(ui, server)
