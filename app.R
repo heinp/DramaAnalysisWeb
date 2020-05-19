@@ -46,7 +46,7 @@ server <- function(input, output) {
   })
 
   # plot them as a bar plot
-  output$quant <- renderPlot(barplot(charStats(), main=dramaNames(thisDrama())))
+  output$quant <- renderPlot(barplot(charStats(), main=dramaNames(thisDrama())), width=500)
   
 }
 
