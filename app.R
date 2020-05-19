@@ -17,7 +17,9 @@ ui <- fluidPage(
     # Main panel for displaying outputs ----
     mainPanel(
       tabsetPanel(
-        tabPanel("Utterance Quantity", plotOutput("quant")),
+        tabPanel("Utterance Quantity", plotOutput("quant"), sliderInput("maxNFig", "Only show top n% of Figures:",
+                                                                        min = 0, max = 100,
+                                                                        value = 100, step=1),),
         tabPanel("Utterance Distribution", plotOutput("dist")),
         tabPanel("Character Presence", plotOutput("presence")),
         tabPanel("Copresence", plotOutput("copresence"))
@@ -42,7 +44,12 @@ server <- function(input, output) {
   }) 
 
   charStats <- reactive({
-    characterNames(characterStatistics(thisDrama()), thisDrama())
+    stats <- characterNames(characterStatistics(thisDrama()), thisDrama())
+    stats <- stats[order(-stats$tokens),]
+    percentage <- input$maxNFig / 100
+    firstN <- ceiling(length(stats) * percentage)
+    if (firstN <1){firstN <- 1}
+    head(stats, firstN)
   })
 
   # plot them as a bar plot
