@@ -22,7 +22,7 @@ ui <- fluidPage(
                                                                         value = 100, step=1),),
         tabPanel("Utterance Distribution", plotOutput("dist")),
         tabPanel("Character Presence", plotOutput("presence")),
-        tabPanel("Copresence", plotOutput("copresence"))
+        tabPanel("Copresence", plotOutput("copresence", width=500, height=500))
       )
     )
   )
@@ -118,7 +118,7 @@ server <- function(input, output) {
     # add the y axis
     axis(2, at = seq(0,1,length.out = length(co()$character)), labels = co()$character, las=1)
   })
-  output$copresence <- renderCachedPlot(heat(), {input$dramaID})
+  output$copresence <- renderCachedPlot(heat(), {input$dramaID}, sizePolicy=sizeGrowthRatio(width = 500, height = 400, growthRate = 1.25))
 }
 
 shinyApp(ui, server)
