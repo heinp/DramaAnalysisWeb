@@ -17,11 +17,9 @@ ui <- fluidPage(
     # Main panel for displaying outputs ----
     mainPanel(
       tabsetPanel(
-        tabPanel("Utterance Quantity", plotOutput("quant"), sliderInput("maxNCh", "Only show top n% of characters (min. 2):",
-                                                                        min = 0, max = 100,
-                                                                        value = 100, step=1),),
-        tabPanel("Utterance Distribution", plotOutput("dist")),
-        tabPanel("Character Presence", plotOutput("presence")),
+        tabPanel("Utterance Quantity", plotOutput("quant"), uiOutput("intSlider")),
+        tabPanel("Utterance Distribution", plotOutput("dist", width=500)),
+        tabPanel("Character Presence", plotOutput("presence", width=500)),
         tabPanel("Copresence", plotOutput("copresence", width=500, height=500))
       )
     )
@@ -52,14 +50,12 @@ server <- function(input, output) {
   })
   
   topNStats <- reactive({
-    percentage <- input$maxNCh / 100
-    firstN <- ceiling(length(charStats()) * percentage)
-    if (firstN < 2){firstN <- 2}
-    head(charStats(), firstN)
+    head(charStats(), as.integer(input$maxNAbs))
   })
 
   # plot utterance quantity as a bar plot
   output$quant <- renderPlot(barplot(topNStats(), main=dramaNames(thisDrama())), width=500)
+  output$intSlider <- renderUI(sliderInput("maxNAbs", "Only show top N characters:", min=2, max=length(charStats()), value=length(charStats()), step=1))
   
   #create utterance distribution stats
   
@@ -69,7 +65,13 @@ server <- function(input, output) {
   })
   
   # plot utterance distribution
-  output$dist <- renderPlot(plot(uttStats(), thisDrama(), main=dramaNames(thisDrama())), width=500)
+  uttDistPlot <- reactive({
+    par(mar=c(2,9,2,2))
+    plot(uttStats(), thisDrama(), main=dramaNames(thisDrama()))
+  })
+  
+  # output$dist <- renderPlot(plot(uttStats(), thisDrama(), main=dramaNames(thisDrama())), width=500)
+  output$dist <- renderCachedPlot(uttDistPlot(), {input$dramaID})
   
   
   # create copresence stats
@@ -118,7 +120,35 @@ server <- function(input, output) {
     # add the y axis
     axis(2, at = seq(0,1,length.out = length(co()$character)), labels = co()$character, las=1)
   })
-  output$copresence <- renderCachedPlot(heat(), {input$dramaID}, sizePolicy=sizeGrowthRatio(width = 500, height = 400, growthRate = 1.25))
+  output$copresence <- renderCachedPlot(heat(), {input$dramaID})
+  
+  
+  # create character presence stats
+  pres <- reactive({
+    characterNames(presence(thisDrama()), thisDrama())
+  })
+  
+  # plot character presence stats
+  presplot <- reactive({
+    plot(x=pres()$active/pres()$scenes, 
+         y=pres()$passive/pres()$scenes, 
+         xlim=c(0,1), 
+         ylim=c(0,1), 
+         xlab="Active", 
+         ylab="Passive",
+         sub=dramaNames(thisDrama()),
+         main="Character Presence")
+    text(x=pres()$actives/pres()$scenes, 
+         y=pres()$passives/pres()$scenes, 
+         labels=substr(pres()$character,0,20), 
+         pos=3,
+         cex=0.8)
+    lines(x=seq(0,0.5,0.1),seq(0,0.5,0.1), lty=3)
+    lines(x=1:0,y=0:1, lty=2)
+  })
+  
+  output$presence <- renderCachedPlot(presplot(), {input$dramaID})
+  
 }
 
 shinyApp(ui, server)
