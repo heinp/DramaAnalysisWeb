@@ -12,7 +12,8 @@ ui <- fluidPage(
   sidebarLayout(
     # Sidebar panel for inputs ----
     sidebarPanel(
-      selectInput(inputId="dramaID", "Text auswählen:", choices=avaliableDramas)
+      # selectInput(inputId="dramaID", "Text auswählen:", choices=avaliableDramas)
+      selectizeInput(inputId="dramaID", "Text auswählen:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=TRUE, placeholder="Select a drama"))
     ),
     # Main panel for displaying outputs ----
     mainPanel(
