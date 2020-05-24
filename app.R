@@ -51,7 +51,7 @@ server <- function(input, output) {
   })
   
   topNStats <- reactive({
-    head(charStats(), as.integer(input$maxNAbs))
+    tryCatch(head(charStats(), as.integer(input$maxNAbs)), error = function(e) charStats())
   })
 
   # plot utterance quantity as a bar plot
