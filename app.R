@@ -51,12 +51,12 @@ server <- function(input, output) {
   })
   
   topNStats <- reactive({
-    head(charStats(), as.integer(input$maxNAbs))
+    tryCatch(head(charStats(), as.integer(input$maxNAbs)), error = function(e) charStats())
   })
 
   # plot utterance quantity as a bar plot
   output$quant <- renderPlot(barplot(topNStats(), main=dramaNames(thisDrama())), width=500)
-  output$intSlider <- renderUI(sliderInput("maxNAbs", "Only show top N characters:", min=2, max=length(charStats()), value=length(charStats()), step=1))
+  output$intSlider <- renderUI(sliderInput("maxNAbs", "Only show top N characters:", min=2, max=nrow(charStats()), value=nrow(charStats()), step=1))
   
   #create utterance distribution stats
   
