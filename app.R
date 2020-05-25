@@ -12,8 +12,7 @@ ui <- fluidPage(
   sidebarLayout(
     # Sidebar panel for inputs ----
     sidebarPanel(
-      # selectInput(inputId="dramaID", "Text auswählen:", choices=avaliableDramas)
-      selectizeInput(inputId="dramaID", "Text auswählen:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=TRUE, placeholder="Select a drama"))
+      selectizeInput(inputId="dramaID", "Select a drama:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=TRUE, placeholder="Select a drama"))
     ),
     # Main panel for displaying outputs ----
     mainPanel(
@@ -34,6 +33,9 @@ server <- function(input, output) {
   
   # get the selected Drama
   thisDrama <- reactive({
+    validate(
+      need(input$dramaID != "", "Please select drama")
+    )
     drama <- list("text" = dramas$text[dramas$text$drama == input$dramaID],
                   "meta" = dramas$meta[dramas$meta$drama == input$dramaID],
                   "segments" = dramas$segments[dramas$segments$drama == input$dramaID],
