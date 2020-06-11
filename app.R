@@ -90,7 +90,7 @@ server <- function(input, output) {
   # plot utterance distribution
   uttDistPlot <- reactive({
     par(mar=c(2,9,2,2))
-    plot(topNUttStats(), main=dramaNames(thisDrama()))
+    plot(topNUttStats(), thisDrama(), main=dramaNames(thisDrama()))
   })
   
   output$dist <- renderCachedPlot(uttDistPlot(),  c(input$dramaID, input$topN))
