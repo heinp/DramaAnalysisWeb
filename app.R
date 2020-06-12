@@ -30,11 +30,12 @@ ui <- fluidPage(
       conditionalPanel(condition="input.expertSettings",
                        numericInput(inputId="sizeX", label="size (px)", value= 500, min = 50, max = 1000, step = 50,
                                     width = NULL),
-                       numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10))
+                       numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10),
+                       selectInput(inputId="title", label="title", choices=list("drama title","metric", "nothing"), selected="drama title"))
     ),
     # Main panel for displaying outputs ----
     mainPanel(
-      tabsetPanel(
+      tabsetPanel( id="tabs",
         tabPanel("Utterance Quantity", plotOutput("quant")),
         tabPanel("Utterance Distribution", plotOutput("dist", width=500)),
         tabPanel("Character Presence", plotOutput("presence", width=500)),
@@ -64,6 +65,17 @@ server <- function(input, output) {
   })
   output$intSlider <- renderUI(sliderInput("topN", "Only show top N characters:", min=2, max=nrow(charStats()), value=startVal(), step=1))
   
+  # get different versions of titles
+  title <- reactive({
+    if (input$title == "drama title") t <- dramaNames(thisDrama())
+    else if (input$title == "metric") t <- input$tabs
+    else t <- ""
+  })
+  
+  # define cacheKey
+  cacheKey <- reactive({
+    c(input$dramaID, input$topN, input$title) 
+  })
   
   # create sorted charecter stats (for utterance quantity and for topN)
   charStats <- reactive({
@@ -85,7 +97,7 @@ server <- function(input, output) {
   size <- reactive(input$sizeX)
 
   # plot utterance quantity as a bar plot
-  output$quant <- renderPlot(barplot(topNCharStats(), main=dramaNames(thisDrama())), width=500)
+  output$quant <- renderPlot(barplot(topNCharStats(), main=title()), width=500)
   
   #create utterance distribution stats
   
@@ -104,10 +116,10 @@ server <- function(input, output) {
   # plot utterance distribution
   uttDistPlot <- reactive({
     par(mar=c(2,9,2,2))
-    plot(topNUttStats(), thisDrama(), main=dramaNames(thisDrama()))
+    plot(topNUttStats(), thisDrama(), main=title())
   })
   
-  output$dist <- renderCachedPlot(uttDistPlot(),  c(input$dramaID, input$topN))
+  output$dist <- renderCachedPlot(uttDistPlot(),  cacheKey())
   
   
   # create copresence stats
@@ -144,8 +156,7 @@ server <- function(input, output) {
           xaxt= "n",  # no x axis
           yaxt= "n",  # no y axis
           frame=TRUE,  # print a frame around the heatmap
-          main=dramaNames(thisDrama())
-    )
+          main=title())
 
     # include values as labels
     text(y=(rep(1:ncol(copresence()), each=nrow(copresence()))-1)/(nrow(copresence())-1),
@@ -157,7 +168,7 @@ server <- function(input, output) {
     # add the y axis
     axis(2, at = seq(0,1,length.out = length(co()$character)), labels = co()$character, las=1)
   })
-  output$copresence <- renderCachedPlot(heat(),  c(input$dramaID, input$topN))
+  output$copresence <- renderCachedPlot(heat(),  cacheKey())
   
   
   # create character presence stats
@@ -174,7 +185,7 @@ server <- function(input, output) {
          ylim=c(0,1), 
          xlab="Active", 
          ylab="Passive",
-         main=dramaNames(thisDrama()))
+         main=title())
     text(x=pres$actives/pres$scenes, 
          y=pres$passives/pres$scenes, 
          labels=substr(pres$character,0,20), 
@@ -184,7 +195,7 @@ server <- function(input, output) {
     lines(x=1:0,y=0:1, lty=2)
   })
   
-  output$presence <- renderCachedPlot(presplot(), c(input$dramaID, input$topN))
+  output$presence <- renderCachedPlot(presplot(), cacheKey())
   
 }
 
