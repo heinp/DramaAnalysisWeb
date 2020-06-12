@@ -91,15 +91,15 @@ server <- function(input, output) {
   })
   
   topNUttStats <- reactive({
-    uttStats()[uttStats()$character %in% topNFigs(), ]
+    uttStats <- uttStats()[uttStats()$character %in% topNFigs(), ]
+    uttStats$character <- factor(uttStats$character, levels=unique(uttStats$character))
+    uttStats
   })
   
   # plot utterance distribution
   uttDistPlot <- reactive({
     par(mar=c(2,9,2,2))
-    drama <- lapply(thisDrama(), function(x) x[x$character %in% topNFigs(),])
-    class(drama) <- c("QDDrama", "list") 
-    plot(topNUttStats(), drama, main=dramaNames(thisDrama()))
+    plot(topNUttStats(), thisDrama(), main=dramaNames(thisDrama()))
   })
   
   output$dist <- renderCachedPlot(uttDistPlot(),  c(input$dramaID, input$topN))
