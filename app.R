@@ -22,8 +22,15 @@ ui <- fluidPage(
   sidebarLayout(
     # Sidebar panel for inputs ----
     sidebarPanel(
-      selectizeInput(inputId="dramaID", "Select a drama:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=TRUE, placeholder="Select a drama")),
-      uiOutput("intSlider")
+      selectizeInput(inputId="dramaID", "Select a drama:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=FALSE, placeholder="Select a drama")),
+      hr(),
+      uiOutput("intSlider"),
+      hr(),
+      checkboxInput(inputId="expertSettings", label="show expert settings", value=FALSE),
+      conditionalPanel(condition="input.expertSettings",
+                       numericInput(inputId="sizeX", label="size (px)", value= 500, min = 50, max = 1000, step = 50,
+                                    width = NULL),
+                       numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10))
     ),
     # Main panel for displaying outputs ----
     mainPanel(
@@ -69,6 +76,8 @@ server <- function(input, output) {
   topNCharStats <- reactive({
     charStats()[charStats()$character %in% topNFigs(),]
   })
+  
+  size <- reactive(input$sizeX)
 
   # plot utterance quantity as a bar plot
   output$quant <- renderPlot(barplot(topNCharStats(), main=dramaNames(thisDrama())), width=500)
