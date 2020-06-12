@@ -22,7 +22,7 @@ ui <- fluidPage(
   sidebarLayout(
     # Sidebar panel for inputs ----
     sidebarPanel(
-      selectizeInput(inputId="dramaID", "Select a drama:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=FALSE, placeholder="Select a drama")),
+      selectizeInput(inputId="dramaID", "Select a drama:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=FALSE, placeholder="Select a drama", onInitialize = I('function() { this.setValue(""); }'))),
       hr(),
       uiOutput("intSlider"),
       hr(),
@@ -57,7 +57,12 @@ server <- function(input, output) {
   })
   
   # create slider for choice of top N
-  output$intSlider <- renderUI(sliderInput("topN", "Only show top N characters:", min=2, max=nrow(charStats()), value=nrow(charStats()), step=1))
+  startVal <- reactive({
+    if (nrow(charStats()) > 10) val <- 10
+    else val <- nrow(charStats())
+    val
+  })
+  output$intSlider <- renderUI(sliderInput("topN", "Only show top N characters:", min=2, max=nrow(charStats()), value=startVal(), step=1))
   
   
   # create sorted charecter stats (for utterance quantity and for topN)
