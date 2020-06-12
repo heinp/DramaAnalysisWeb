@@ -143,7 +143,8 @@ server <- function(input, output) {
                     maxColorValue = 256),
           xaxt= "n",  # no x axis
           yaxt= "n",  # no y axis
-          frame=TRUE  # print a frame around the heatmap
+          frame=TRUE,  # print a frame around the heatmap
+          main=dramaNames(thisDrama())
     )
 
     # include values as labels
@@ -173,8 +174,7 @@ server <- function(input, output) {
          ylim=c(0,1), 
          xlab="Active", 
          ylab="Passive",
-         sub=dramaNames(thisDrama()),
-         main="Character Presence")
+         main=dramaNames(thisDrama()))
     text(x=pres$actives/pres$scenes, 
          y=pres$passives/pres$scenes, 
          labels=substr(pres$character,0,20), 
