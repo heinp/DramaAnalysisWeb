@@ -97,7 +97,7 @@ server <- function(input, output) {
   size <- reactive(input$sizeX)
 
   # plot utterance quantity as a bar plot
-  output$quant <- renderPlot(barplot(topNCharStats(), main=title()), width=500)
+  output$quant <- renderPlot(barplot(topNCharStats(), main=title(), xaxt="n"), width=500)
   
   #create utterance distribution stats
   
