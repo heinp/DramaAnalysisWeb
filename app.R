@@ -97,7 +97,7 @@ server <- function(input, output) {
   size <- reactive(input$sizeX)
 
   # plot utterance quantity as a bar plot
-  output$quant <- renderPlot(barplot(topNCharStats(), main=title()), width=500)
+  output$quant <- renderPlot(barplot(topNCharStats(), main=title(), xaxt="n"), width=500)
   
   #create utterance distribution stats
   
@@ -149,7 +149,7 @@ server <- function(input, output) {
 
   # plot copresence
   heat <- reactive({
-    par(mar=c(10,10,1,1)) # plot margins
+    par(mar=c(10,10,3,3)) # plot margins
     image(copresence(),
           col = rgb(256,111,184, alpha=(seq(0,255)),
                     maxColorValue = 256),
