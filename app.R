@@ -26,12 +26,14 @@ ui <- fluidPage(
       hr(),
       uiOutput("intSlider"),
       hr(),
-      checkboxInput(inputId="expertSettings", label="show expert settings", value=FALSE),
+      checkboxInput(inputId="expertSettings", label="show export settings", value=FALSE),
       conditionalPanel(condition="input.expertSettings",
                        numericInput(inputId="sizeX", label="size (px)", value= 500, min = 50, max = 1000, step = 50,
                                     width = NULL),
                        numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10),
-                       selectInput(inputId="title", label="title", choices=list("drama title","metric", "nothing"), selected="drama title"))
+                       selectInput(inputId="filetype", label="filetype", choices = c("png", "pdf")),
+                       selectInput(inputId="title", label="title", choices=list("drama title","metric", "nothing"), selected="drama title"),
+                       downloadButton('downloadPlot', 'Download Plot'))
     ),
     # Main panel for displaying outputs ----
     mainPanel(
@@ -71,6 +73,14 @@ server <- function(input, output) {
     else if (input$title == "metric") t <- input$tabs
     else t <- ""
   })
+  
+  # download button
+  output$downloadPlot <- downloadHandler(
+    filename = function() { paste(thisDrama(), '_', tolower(chartr(old=" ", new="_", input$tabs)), input$filetype, sep='') },
+    content = function(file) {
+      ggsave(file, plot = plots[[input$tabs]], device = input$filetype)
+    }
+  )
   
   # define cacheKey
   cacheKey <- reactive({
@@ -196,6 +206,14 @@ server <- function(input, output) {
   })
   
   output$presence <- renderCachedPlot(presplot(), cacheKey())
+  
+  # lookup for plotfunction by tab name
+  plots <- reactive({
+    list("Utterance Quantity"=function(){barplot(topNCharStats(), main=title(), xaxt="n")},
+         "Utterance Distribution"=uttDistPlot(),
+         "Character Presence"=presplot(),
+         "Copresence"=heat())
+  })
   
 }
 
