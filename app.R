@@ -32,7 +32,9 @@ ui <- fluidPage(
                                     width = NULL),
                        numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10),
                        selectInput(inputId="filetype", label="filetype", choices = c("png", "pdf")),
-                       selectInput(inputId="title", label="title", choices=list("drama title","metric", "nothing"), selected="drama title"),
+                       selectInput(inputId="title", label="title", choices=list("drama title","metric", "nothing", "custom"), selected="drama title"),
+                       conditionalPanel(condition="input.title=='custom'",
+                                        textInput("customTitle", label=NULL, placeholder="your custom title")),
                        downloadButton('downloadPlot', 'Download Plot'))
     ),
     # Main panel for displaying outputs ----
@@ -71,6 +73,7 @@ server <- function(input, output) {
   title <- reactive({
     if (input$title == "drama title") t <- dramaNames(thisDrama())
     else if (input$title == "metric") t <- input$tabs
+    else if (input$title == "custom") t <- input$customTitle
     else t <- ""
   })
   
