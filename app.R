@@ -2,13 +2,14 @@ library(shiny)
 library(DramaAnalysis)
 
 
-
+# load the drama IDs, install the data if not installed
 ids <- loadAllInstalledIds()
 if (length(ids) < 500){
   tryCatch(installData(dataSource="qd"), error = function(e) {})
   ids <- loadAllInstalledIds()
 }
 
+# remove data from test set and load meta data
 ids <- ids[which(grepl("qd:", ids))]
 metaData <- loadMeta(ids)
 #avaliableDramas <- as.character(metaData$drama)
@@ -27,10 +28,13 @@ ui <- fluidPage(
   sidebarLayout(
     # Sidebar panel for inputs ----
     sidebarPanel(
+      # drama selection drop down menu
       selectizeInput(inputId="dramaID", "Select a drama:", choices=avaliableDramas, selected=NULL, multiple=FALSE, options=list(create=FALSE, placeholder="Select a drama", onInitialize = I('function() { this.setValue(""); }'))),
       hr(),
+      # interactive slider (needs to be in server, because of variable size)
       uiOutput("intSlider"),
       hr(),
+      # additional settings (right now just title customization is activated)
       checkboxInput(inputId="expertSettings", label="show export settings", value=FALSE),
       conditionalPanel(condition="input.expertSettings",
                        # numericInput(inputId="sizeX", label="size (px)", value= 500, min = 50, max = 1000, step = 50, width = NULL),
@@ -43,7 +47,7 @@ ui <- fluidPage(
       )
                        
     ),
-    # Main panel for displaying outputs ----
+    # Main panel for displaying outputs ----i
     mainPanel(
       tabsetPanel( id="tabs",
         tabPanel("Utterance Quantity", plotOutput("quant")),
@@ -83,7 +87,7 @@ server <- function(input, output) {
     else t <- ""
   })
   
-  # download button
+  # download button (right now deactivated)
   output$downloadPlot <- downloadHandler(
     filename = function() { paste(thisDrama(), '_', tolower(chartr(old=" ", new="_", input$tabs)), input$filetype, sep='') },
     content = function(file) {
@@ -91,7 +95,7 @@ server <- function(input, output) {
     }
   )
   
-  # define cacheKey
+  # define cacheKey (what needs to change for figures to be updated)
   cacheKey <- reactive({
     c(input$dramaID, input$topN, input$title) 
   })
@@ -216,7 +220,7 @@ server <- function(input, output) {
   
   output$presence <- renderCachedPlot(presplot(), cacheKey())
   
-  # lookup for plotfunction by tab name
+  # lookup for plotfunction by tab name (would be used for download function)
   plots <- reactive({
     list("Utterance Quantity"=function(){barplot(topNCharStats(), main=title(), xaxt="n")},
          "Utterance Distribution"=uttDistPlot(),
