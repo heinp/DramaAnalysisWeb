@@ -1,9 +1,14 @@
 library(shiny)
 library(DramaAnalysis)
 
-tryCatch(installData(dataSource="qd"), error = function(e) {})
+
 
 ids <- loadAllInstalledIds()
+if (length(ids) < 500){
+  tryCatch(installData(dataSource="qd"), error = function(e) {})
+  ids <- loadAllInstalledIds()
+}
+
 ids <- ids[which(grepl("qd:", ids))]
 metaData <- loadMeta(ids)
 #avaliableDramas <- as.character(metaData$drama)
@@ -28,14 +33,15 @@ ui <- fluidPage(
       hr(),
       checkboxInput(inputId="expertSettings", label="show export settings", value=FALSE),
       conditionalPanel(condition="input.expertSettings",
-                       numericInput(inputId="sizeX", label="size (px)", value= 500, min = 50, max = 1000, step = 50,
-                                    width = NULL),
-                       numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10),
-                       selectInput(inputId="filetype", label="filetype", choices = c("png", "pdf")),
+                       # numericInput(inputId="sizeX", label="size (px)", value= 500, min = 50, max = 1000, step = 50, width = NULL),
+                       # numericInput(inputId="resolution", label="resolution (dpi)", value=150, min=50, max=500, step=10),
+                       # selectInput(inputId="filetype", label="filetype", choices = c("png", "pdf")),
                        selectInput(inputId="title", label="title", choices=list("drama title","metric", "nothing", "custom"), selected="drama title"),
                        conditionalPanel(condition="input.title=='custom'",
                                         textInput("customTitle", label=NULL, placeholder="your custom title")),
-                       downloadButton('downloadPlot', 'Download Plot'))
+                       # downloadButton('downloadPlot', 'Download Plot')
+      )
+                       
     ),
     # Main panel for displaying outputs ----
     mainPanel(
