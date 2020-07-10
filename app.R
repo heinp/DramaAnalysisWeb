@@ -97,7 +97,7 @@ server <- function(input, output) {
   
   # define cacheKey (what needs to change for figures to be updated)
   cacheKey <- reactive({
-    c(input$dramaID, input$topN, input$title) 
+    c(input$dramaID, input$topN, input$title, input$customTitle) 
   })
   
   # create sorted charecter stats (for utterance quantity and for topN)
